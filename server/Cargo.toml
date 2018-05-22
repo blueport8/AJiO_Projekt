@@ -1,0 +1,14 @@
+[package]
+name = "request_test"
+version = "0.1.0"
+authors = ["nir94 <mateusz.s00@outlook.com>"]
+
+[dependencies]
+regex = "0.2"
+serde_json = "1.0"
+postgres = { version = "0.15", features = ["with-chrono"] }
+ctrlc = { version = "3.0", features = ["termination"] }
+chrono = "0.4"
+
+[dependencies.curl]
+git = "https://github.com/carllerche/curl-rust"

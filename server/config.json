@@ -1,0 +1,18 @@
+{
+	"logging": {
+		"log_to_file": "1",
+		"log_file_prefix": ".\\Logs\\excution",
+		"log_to_console": "1"
+	},
+	"database": {
+		"dbname": "example",
+		"user": "example",
+		"host": "localhost",
+		"port": "5432",
+		"password": "the_answer_to_life_universe_and_everything_42"
+	},
+	"parser": {
+		"list_url": "https://www.gumtree.pl/s-mieszkania-i-domy-do-wynajecia/v1c9008p1",
+		"sleep_between_runs": "10000"
+	}
+}
