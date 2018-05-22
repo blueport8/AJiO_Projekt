@@ -37,6 +37,10 @@ fn main() {
     let cities: Vec<City> = get_all_cities(&db_connection);
     println!("{:?}", cities);
 
+    println!("Initializing link cache");
+    let mut advert_cache: Vec<(String, String, i32)> = Vec::new();
+    let cache_size: usize = conf["parser"]["link_cache"].as_str().expect("Failed to initialize link cache.").to_string().parse().unwrap();
+
     let running = Arc::new(AtomicBool::new(true));
     let r = running.clone();
     ctrlc::set_handler(move || {
@@ -69,6 +73,7 @@ fn main() {
             }
         }
         let response_results: Vec<(String, String, i32)> = filter_results_by_city(response_results, &cities);
+        let response_results: Vec<(String, String, i32)> = filter_results_using_cache(response_results, &mut advert_cache, cache_size);
         if response_results.len() > 0 {
             if last_inserted.0.is_empty() && last_inserted.1.is_empty() {
                 let adv: Advertisement = get_advert(format!("https://www.gumtree.pl{}", parse_polish_chars_in_address(&response_results[0].0)), response_results[0].2);
@@ -158,6 +163,25 @@ fn filter_results_by_city(results: Vec<(String, String)>, cities: &Vec<City>) ->
         }
     }
     filered_results
+}
+
+fn filter_results_using_cache(results: Vec<(String, String, i32)>, cache: &mut Vec<(String, String, i32)>, cache_size: usize) -> Vec<(String, String, i32)> {
+    let mut filtered: Vec<(String, String, i32)> = Vec::new();
+    for result in results {
+        // Check if item does not exist in cache
+        if cache.contains(&result) {
+            println!("Element found in cache");
+            continue;
+        }
+        cache.push(result.clone());
+        filtered.push(result);
+        // Check if cache has been filled. If so remove last element
+        if cache.len() > cache_size {
+            let last_element = cache.len().clone();
+            cache.remove(last_element - 1);
+        }
+    }
+    filtered
 }
 
 fn get_advert(url: String, city_id: i32) -> Advertisement {

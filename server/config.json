@@ -13,6 +13,7 @@
 	},
 	"parser": {
 		"list_url": "https://www.gumtree.pl/s-mieszkania-i-domy-do-wynajecia/v1c9008p1",
-		"sleep_between_runs": "10000"
+		"sleep_between_runs": "10000",
+		"link_cache": "100"
 	}
 }
