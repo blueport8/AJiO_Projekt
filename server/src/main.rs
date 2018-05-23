@@ -7,6 +7,7 @@ extern crate chrono;
 
 pub mod config_provider;
 pub mod database_provider;
+use std::collections::LinkedList;
 use config_provider::config_provider::load_config;
 use database_provider::database_provider::*;
 
@@ -38,8 +39,9 @@ fn main() {
     println!("{:?}", cities);
 
     println!("Initializing link cache");
-    let mut advert_cache: Vec<(String, String, i32)> = Vec::new();
+    let mut advert_cache: LinkedList<(String, String, i32)> = LinkedList::new();
     let cache_size: usize = conf["parser"]["link_cache"].as_str().expect("Failed to initialize link cache.").to_string().parse().unwrap();
+    let mut first_run: bool = true;
 
     let running = Arc::new(AtomicBool::new(true));
     let r = running.clone();
@@ -55,6 +57,7 @@ fn main() {
     let mut last_inserted: (String, String) = (String::new(), String::new());
 
     while running.load(Ordering::SeqCst) {
+        println!("\nServer avoke at: {}", Utc::now());
         let mut response_results: Vec<(String, String)> = Vec::new();
         let raw_response: Vec<u8> = make_web_request(conf["parser"]["list_url"].as_str().unwrap());
         let parsed_response = parse_response(String::from_utf8(raw_response).unwrap());
@@ -72,8 +75,11 @@ fn main() {
                 }
             }
         }
-        let response_results: Vec<(String, String, i32)> = filter_results_by_city(response_results, &cities);
-        let response_results: Vec<(String, String, i32)> = filter_results_using_cache(response_results, &mut advert_cache, cache_size);
+        let mut response_results: Vec<(String, String, i32)> = filter_results_by_city(response_results, &cities);
+        if !first_run {
+            response_results = filter_results_using_cache(response_results, &mut advert_cache, cache_size);
+        }
+        first_run = false;
         if response_results.len() > 0 {
             if last_inserted.0.is_empty() && last_inserted.1.is_empty() {
                 let adv: Advertisement = get_advert(format!("https://www.gumtree.pl{}", parse_polish_chars_in_address(&response_results[0].0)), response_results[0].2);
@@ -165,20 +171,20 @@ fn filter_results_by_city(results: Vec<(String, String)>, cities: &Vec<City>) ->
     filered_results
 }
 
-fn filter_results_using_cache(results: Vec<(String, String, i32)>, cache: &mut Vec<(String, String, i32)>, cache_size: usize) -> Vec<(String, String, i32)> {
+fn filter_results_using_cache(results: Vec<(String, String, i32)>, cache: &mut LinkedList<(String, String, i32)>, cache_size: usize) -> Vec<(String, String, i32)> {
     let mut filtered: Vec<(String, String, i32)> = Vec::new();
+    //println!("Before run:\n{:?}", cache);
     for result in results {
         // Check if item does not exist in cache
         if cache.contains(&result) {
             println!("Element found in cache");
             continue;
         }
-        cache.push(result.clone());
+        cache.push_back(result.clone());
         filtered.push(result);
         // Check if cache has been filled. If so remove last element
         if cache.len() > cache_size {
-            let last_element = cache.len().clone();
-            cache.remove(last_element - 1);
+            cache.pop_front();
         }
     }
     filtered

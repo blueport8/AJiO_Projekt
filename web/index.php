@@ -24,8 +24,8 @@
 <?php
    $host        = "host = localhost";
    $port        = "port = 5432";
-   $dbname      = "dbname = name";
-   $credentials = "user = username password=secret";
+   $dbname      = "dbname = test";
+   $credentials = "user = test password=test";
 
    $db = pg_connect( "$host $port $dbname $credentials"  );
    // if(!$db) {
