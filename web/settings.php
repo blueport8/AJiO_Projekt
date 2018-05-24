@@ -89,7 +89,7 @@
     	<h4>Miasto:</h4>
 	    <select name="city" class="custom-select">
 		<?php 
-			$sql = "select c.id, c.name from City c left join City c_other on c_other.id != c.id where c.id in (select cast(value as INTEGER) from configuration where key = 'city_id' and configuration_variant_id = 1)";
+			$sql = "select c.id, c.name from City c where c.id in (select cast(value as INTEGER) from configuration where key = 'city_id' and configuration_variant_id = 1) union all select c.id, c.name from City c where c.id not in (select cast(value as INTEGER) from configuration where key = 'city_id' and configuration_variant_id = 1)";
 			$ret = pg_query($db, $sql);
 			if(!$ret) {
 				echo pg_last_error($db);
@@ -100,7 +100,7 @@
 	    		echo $row[0];
 	    		echo "\">";
 	    		echo $row[1];
-	    		echo "<option>";
+	    		echo "</option>";
 	   		}
 		?>
 		</select>
@@ -177,7 +177,7 @@
 		</div>
 
 		<br>
-		<h4>Rozmiar:</h4>
+		<h4>Wielkość (m2):</h4>
 		<div class="input-group mb-3">
 		  	<div class="input-group-prepend">
 		    	<span class="input-group-text" id="inputGroup-sizing-default">Min</span>
@@ -289,7 +289,7 @@
 			$negative_option_row = pg_fetch_row($ret);
 		?>
 		<h4 style="margin-bottom: 1px;">Słowa kluczowe:</h4>
-		<p style="margin-top: 1px; margin-bottom: 5px;">Oddzielone średnikami. Spacje i entry będą pominięte.</p>
+		<p style="margin-top: 1px; margin-bottom: 5px;">Oddzielone średnikami. Spacje i entery będą pominięte.</p>
 		<div class="input-group" style="margin-bottom: 20px;">
 		  <div class="input-group-prepend">
 		    <span class="input-group-text">Pozytywne</span>
